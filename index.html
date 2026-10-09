@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Time Clock</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1d2433;--mut:#6b7385;--line:#e2e0d8;--acc:#1f6f5c;--accb:#dff0ea;--warn:#b4412f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171d;--card:#1e222b;--ink:#eceef2;--mut:#98a0b3;--line:#2e3340;--acc:#5fc2a6;--accb:#1f3a33;--warn:#ef8a78}}
+:root[data-theme="dark"]{--bg:#14171d;--card:#1e222b;--ink:#eceef2;--mut:#98a0b3;--line:#2e3340;--acc:#5fc2a6;--accb:#1f3a33;--warn:#ef8a78}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:640px;margin:0 auto;padding:14px}
+.users{display:flex;gap:8px;margin-bottom:12px}
+.users button{flex:1;padding:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font-size:16px;font-weight:600;cursor:pointer}
+.users button.on{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+.weekbar{display:flex;align-items:center;gap:6px}
+.nav{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;width:38px;height:62px;font-size:20px;cursor:pointer}
+.days{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;flex:1}
+.day{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 0;text-align:center;cursor:pointer;height:62px}
+.day small{display:block;color:var(--mut);font-size:12px}
+.day b{font-size:18px}
+.day.today{border-color:var(--acc)}
+.day.sel{background:var(--acc);color:var(--bg)}
+.day.sel small{color:inherit;opacity:.8}
+.day i{display:block;width:8px;height:8px;border-radius:50%;margin:2px auto 0;background:transparent}
+.day.g i{background:#2fa84f}.day.r i{background:#d93a2f}.day.sel i{box-shadow:0 0 0 1.5px #fff}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;background:var(--line)}.dot.g{background:#2fa84f}.dot.r{background:#d93a2f}
+.st{font-size:13px;color:var(--mut)}
+.btns{flex-wrap:wrap}.btns .turn{background:var(--acc);color:var(--bg);border-color:var(--acc);margin-left:auto;font-weight:700}.btns .turn:disabled{opacity:.4}
+.sr{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line)}
+.panel{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px}.btns .on{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+.sg{display:grid;grid-template-columns:1.1fr repeat(4,1fr);gap:4px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}.sg span:not(:first-child){text-align:right}.sg.h{color:var(--mut);font-size:12px}.sg.t{font-weight:700;border:0}
+select{padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);max-width:60%}
+h2{margin:18px 2px 8px;font-size:18px}
+.sub{color:var(--mut);font-size:14px;margin:-4px 2px 10px}
+.job{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.job .top{display:flex;justify-content:space-between;align-items:baseline}
+.job .nm{font-weight:700}
+.job .hrs{color:var(--acc);font-weight:700}
+.row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-top:8px;align-items:end}
+.wk{padding:9px 4px;border-radius:8px;background:var(--accb);text-align:center;font-weight:700;color:var(--acc);min-height:42px;font-size:15px}
+.nb{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;height:42px;padding:0 10px;font-size:14px;cursor:pointer}
+.nb.has{background:var(--accb);border-color:var(--acc)}
+textarea{width:100%;margin-top:8px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;min-height:70px;resize:vertical}
+label{font-size:12px;color:var(--mut);display:block}
+input[type=time],input[type=text]{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:16px}
+.btns{display:flex;gap:8px;margin-top:8px}
+.btns button,.small{border:1px solid var(--line);background:var(--accb);color:var(--ink);padding:7px 10px;border-radius:8px;cursor:pointer;font-size:14px}
+.btns .ghost,.small.ghost{background:transparent;color:var(--mut)}
+.week{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.week div{display:flex;justify-content:space-between;padding:3px 0}
+.week .tot{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-weight:700}
+.mj{display:flex;gap:6px;margin-bottom:6px}
+.foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.warn{color:var(--warn)}
+</style></head>
+<body><div class="wrap" id="login"><h2>Time Clock</h2><div class="job"><label>Passcode</label><input type="password" id="pw" autocomplete="current-password"><div class="btns"><button class="turn" id="go" style="margin-left:0">Sign in</button></div><div class="sub" id="lerr"></div></div></div>
+<div class="wrap" id="app" hidden>
+<div class="users" id="users"></div>
+<div class="weekbar"><button class="nav" id="prev" aria-label="Previous week">‹</button><div class="days" id="days"></div><button class="nav" id="next" aria-label="Next week">›</button></div>
+<h2 id="title"></h2><div class="sub" id="sub"></div>
+<div id="jobs"></div>
+<h2>This week</h2><div class="week" id="week"></div>
+<h2>Pay period summary</h2><div id="sum"></div><div id="sumfb"></div>
+<div class="foot"><button class="small" id="manage">Edit names &amp; jobs</button><button class="small" id="csv">Export CSV</button><button class="small" id="bk">Back up all data</button><button class="small ghost" id="today">Jump to today</button><button class="small ghost" id="out">Sign out</button><span class="st" id="sync"></span></div>
+<div id="mgr"></div>
+<div class="job" id="impbox" hidden><b>Import from the old version</b><div class="sub">Load the backup file from the claude.ai version. This replaces what is saved here.</div><input type="file" id="impf" accept=".json"><textarea id="imp" placeholder="…or paste the backup text here"></textarea><label style="margin-top:8px">Whose data is in the backup?</label><select id="impu"><option value="0">First tab (Emery)</option><option value="1">Second tab (Ethan)</option></select><div class="btns"><button class="turn" id="impgo" style="margin-left:0">Import</button></div><div class="sub" id="impmsg"></div></div>
+</div>
+<script>
+const KEY='timeclock.v1';
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const uid=()=>Math.random().toString(36).slice(2,8);
+let S=null,PASS='',saveT=null,dirty=false;
+const $s=id=>document.getElementById(id);
+const setStat=t=>{const el=$s('sync');if(el)el.textContent=t};
+async function api(method,body,keep){const r=await fetch('/api/data',{method,keepalive:!!keep,headers:{'x-passcode':PASS,'content-type':'application/json'},body:body?JSON.stringify(body):undefined});if(r.status===401)throw Object.assign(new Error('auth'),{auth:1});if(!r.ok)throw new Error('http '+r.status);return r.json()}
+function save(){dirty=true;setStat('Saving…');clearTimeout(saveT);saveT=setTimeout(()=>flush(false),500)}
+async function flush(keep){if(!dirty||!S)return;clearTimeout(saveT);dirty=false;try{await api('PUT',{state:S},keep);if(!dirty)setStat('Saved ✓')}catch(e){dirty=true;setStat('Not saved – retrying…');saveT=setTimeout(()=>flush(false),4000)}}
+const fresh=name=>({cur:0,entries:{},periods:[],users:[{name,jobs:[{id:uid(),name:'Job 1'},{id:uid(),name:'Job 2'}]}]});
+async function boot(){const r=await api('GET');S=r.state&&r.state.users?r.state:fresh(r.name);S.periods=S.periods||[];S.cur=0;$s('login').hidden=true;$s('app').hidden=false;render();if(!r.state)save();else setStat('Saved ✓')}
+const monday=d=>{const x=new Date(d);x.setHours(12,0,0,0);const w=x.getDay();x.setDate(x.getDate()-(w===0?6:w-1));return x};
+const now=new Date();
+let sumSel={},tin={};let open={};let sel=iso(now),wk=monday(now),showMgr=false;
+if(now.getDay()===0){wk.setDate(wk.getDate());const sat=new Date(wk);sat.setDate(sat.getDate()+5);sel=iso(sat);}
+const key=(j,d)=>S.cur+'|'+j+'|'+d;
+const get=(j,d)=>S.entries[key(j,d)]||{};
+function hrs(e){if(!e.s||!e.e)return 0;const[a,b]=e.s.split(':'),[c,d]=e.e.split(':');let m=(+c*60+ +d)-(+a*60+ +b);if(m<0)m+=1440;return m/60}
+const fmt=h=>{const m=Math.round(h*60);return Math.floor(m/60)+'h '+String(m%60).padStart(2,'0')+'m'};
+const nowT=()=>{const n=new Date();return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')};
+const $=id=>document.getElementById(id);
+function setE(j,f,v){const k=key(j,sel);const e=S.entries[k]||{};e[f]=v;if(!e.s&&!e.e&&!e.n)delete S.entries[k];else S.entries[k]=e;save();render()}
+const live=j=>{const e=S.entries[S.cur+'|'+j+'|'+iso(new Date())];return e&&e.s&&!e.e?'g':'r'};
+const hm=h=>{const m=Math.round(h*60);return Math.floor(m/60)+':'+String(m%60).padStart(2,'0')};
+const fd=d=>new Date(d+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+const fs=d=>new Date(d+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});
+const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+const jobKeys=j=>Object.keys(S.entries).filter(k=>{const p=k.split('|');return p[0]==S.cur&&p[1]==j});
+function pending(j){let t=0;jobKeys(j).forEach(k=>{const e=S.entries[k];if(!e.t)t+=hrs(e)});return t}
+function periodRows(j,pid){return jobKeys(j).map(k=>[k.split('|')[2],S.entries[k]]).filter(([d,e])=>pid==='cur'?(!e.t&&hrs(e)>0):e.t===pid).sort((a,b)=>a[0]<b[0]?-1:1)}
+function periodLabel(j,pid){const r=periodRows(j,pid);if(!r.length)return pid==='cur'?'Current period (not turned in)':'Turned-in period';const a=fs(r[0][0])+' – '+fs(r[r.length-1][0]);return pid==='cur'?'Current: '+a+' (not turned in)':a+' (turned in '+fs(iso(new Date((S.periods.find(x=>x.id===pid)||{}).ts||0)))+')'}
+function pendDates(j){return jobKeys(j).filter(k=>!S.entries[k].t&&hrs(S.entries[k])>0).map(k=>k.split('|')[2]).sort()}
+function turnIn(j,from,to){const ds=pendDates(j).filter(d=>!from||(d>=from&&d<=to));if(!ds.length)return;const id=uid();ds.forEach(d=>S.entries[S.cur+'|'+j+'|'+d].t=id);S.periods.push({id,u:S.cur,j,ts:Date.now(),from:ds[0],to:ds[ds.length-1]});sumSel[j]=id;save()}
+function tinPanel(j){const t=tin[j];if(!t)return'';const inR=pendDates(j).filter(d=>t.mode=='since'||(d>=t.from&&d<=t.to));let tot=0;inR.forEach(d=>tot+=hrs(S.entries[S.cur+'|'+j+'|'+d]));
+ return `<div class="panel"><b>Turn in hours</b><div class="btns"><button class="${t.mode=='since'?'on':''}" data-tm="${j}|since">Since last turn in</button><button class="${t.mode=='custom'?'on':''}" data-tm="${j}|custom">Custom dates</button></div>
+ ${t.mode=='custom'?`<div class="row" style="grid-template-columns:1fr 1fr"><div><label>From</label><input type="date" value="${t.from}" data-tf="${j}|from"></div><div><label>To</label><input type="date" value="${t.to}" data-tf="${j}|to"></div></div>`:''}
+ <div class="sub" style="margin:8px 0 0">${inR.length?`${inR.length} day${inR.length>1?'s':''}, ${fmt(tot)} (${fs(inR[0])} – ${fs(inR[inR.length-1])})`:'No hours waiting to be turned in for this choice.'}</div>
+ <div class="btns"><button class="turn" data-tgo="${j}" ${inR.length?'':'disabled'}>Turn in ${fmt(tot)}</button><button class="ghost" data-tx="${j}">Cancel</button></div></div>`}
+function statsHtml(u){const w0=monday(now),w1=new Date(w0);w1.setDate(w1.getDate()+6);const a=iso(w0),b=iso(w1),m=iso(now).slice(0,7),y=iso(now).slice(0,4);
+ const T=[0,0,0,0];const rows=u.jobs.map(j=>{const r=[0,0,0,0];jobKeys(j.id).forEach(k=>{const d=k.split('|')[2],h=hrs(S.entries[k]);if(d>=a&&d<=b)r[0]+=h;if(d.slice(0,7)==m)r[1]+=h;if(d.slice(0,4)==y)r[2]+=h;if(!S.entries[k].t)r[3]+=h});r.forEach((v,i)=>T[i]+=v);
+  return `<div class="sg"><span>${esc(j.name)}</span>${r.map(v=>`<span>${fmt(v)}</span>`).join('')}</div>`}).join('');
+ return `<div class="job"><div class="top"><span class="nm">Hours worked</span><span class="st">${esc(u.name)}</span></div><div class="sg h"><span></span><span>This week</span><span>This month</span><span>This year</span><span>Since last turn in</span></div>${rows}<div class="sg t"><span>Total</span>${T.map(v=>`<span>${fmt(v)}</span>`).join('')}</div></div>`}
+function renderSum(){const u=S.users[S.cur];$('sumfb').innerHTML='';
+ $('sum').innerHTML=statsHtml(u)+u.jobs.map(j=>{const pid=sumSel[j.id]||'cur';const rows=periodRows(j.id,pid);let tot=0;rows.forEach(([d,e])=>tot+=hrs(e));
+  const ps=S.periods.filter(x=>x.u==S.cur&&x.j==j.id).reverse();
+  const opts=`<option value="cur" ${pid==='cur'?'selected':''}>Current (not turned in)</option>`+ps.map(x=>`<option value="${x.id}" ${pid===x.id?'selected':''}>${fs(x.from)} – ${fs(x.to)}</option>`).join('');
+  return `<div class="job"><div class="top"><span class="nm">${esc(j.name)}</span><select data-ps="${j.id}">${opts}</select></div>
+  <div style="margin-top:8px">${rows.length?rows.map(([d,e])=>`<div class="sr"><span>${fd(d)}</span><span>${fmt(hrs(e))}</span></div>`).join('')+`<div class="sr tot" style="font-weight:700;border:0"><span>Grand total</span><span>${fmt(tot)} (${tot.toFixed(2)} h)</span></div>`:'<div class="sub">No hours in this period yet.</div>'}</div>
+  <div class="btns"><button class="turn" data-tin="${j.id}">Turn in…</button><button data-exp="${j.id}" ${rows.length?'':'disabled'}>Export CSV for employer</button></div>${tinPanel(j.id)}</div>`}).join('')}
+async function exportPeriod(j){const u=S.users[S.cur],job=u.jobs.find(x=>x.id==j),pid=sumSel[j]||'cur',rows=periodRows(j,pid);let tot=0;
+ const L=['Employee,'+q(u.name),'Job,'+q(job.name),'Period,'+q(periodLabel(j,pid)),'','Date,Hours (h:mm),Hours (decimal)'];
+ rows.forEach(([d,e])=>{const h=hrs(e);tot+=h;L.push([q(fd(d)),q(hm(h)),h.toFixed(2)].join(','))});
+ L.push(['Grand total',q(hm(tot)),tot.toFixed(2)].join(','));
+ const text=L.join('\n'),name=(u.name+'-'+job.name+'-hours').replace(/[^\w-]+/g,'_')+'.csv';
+ await saveFile(name,text);return;
+ $('sumfb').innerHTML='<div class="sub">Copy this text:</div>';const ta=document.createElement('textarea');ta.value=text;ta.readOnly=true;ta.style.height='160px';$('sumfb').appendChild(ta);ta.select()}
+function render(){
+ const u=S.users[S.cur];renderSum();$s('impbox').hidden=!showMgr;
+ $('users').innerHTML=S.users.map((x,i)=>`<button class="${i==S.cur?'on':''}" data-u="${i}">${esc(x.name)}</button>`).join('');
+ const days=[];for(let i=0;i<6;i++){const d=new Date(wk);d.setDate(d.getDate()+i);days.push(d)}
+ $('days').innerHTML=days.map(d=>{const k=iso(d);
+  return `<button class="day ${k==sel?'sel':''} ${k==iso(now)?'today':''} " data-d="${k}"><small>${d.toLocaleDateString(undefined,{weekday:'short'})}</small><b>${d.getDate()}</b></button>`}).join('');
+ const sd=new Date(sel+'T12:00:00');
+ $('title').textContent=sd.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+ $('sub').textContent=sel==iso(now)?'Today':days[0].toLocaleDateString(undefined,{month:'short',day:'numeric'})+' – '+days[5].toLocaleDateString(undefined,{month:'short',day:'numeric'});
+ $('jobs').innerHTML=u.jobs.map(j=>{const e=get(j.id,sel);const h=hrs(e);const pend=pending(j.id);const sc=live(j.id);
+  return `<div class="job"><div class="top"><span class="nm"><span class="dot ${sc}"></span>${esc(j.name)}</span><span class="st">${sc=='g'?'Clocked in':'Clocked out'}</span></div>
+  <div class="row"><div><label>Start</label><input type="time" value="${e.s||''}" data-j="${j.id}" data-f="s"></div>
+  <div><label>End</label><input type="time" value="${e.e||''}" data-j="${j.id}" data-f="e"></div>
+  <div><label>Worked</label><div class="wk">${h?fmt(h):'—'}</div></div>
+  <button class="nb ${e.n?'has':''}" data-note="${j.id}">${e.n?'📝 Note •':'📝 Note'}</button></div>
+  ${open[j.id+sel]||false?`<textarea placeholder="Notes about this day's work…" data-nj="${j.id}">${esc(e.n||'')}</textarea>`:''}
+  <div class="btns"><button data-in="${j.id}">Clock in now</button><button data-out="${j.id}">Clock out now</button><button class="ghost" data-clr="${j.id}">Clear</button></div></div>`}).join('');
+ let tot=0;const rows=u.jobs.map(j=>{let t=0;days.forEach(d=>t+=hrs(get(j.id,iso(d))));tot+=t;return `<div><span>${esc(j.name)}</span><span>${fmt(t)}</span></div>`}).join('');
+ $('week').innerHTML=rows+`<div class="tot"><span>Total</span><span>${fmt(tot)}</span></div>`;
+ $('mgr').innerHTML=showMgr?`<h2>Names &amp; jobs</h2>`+S.users.map((x,i)=>`<div class="job"><label>Person</label><input type="text" value="${esc(x.name)}" data-un="${i}">
+  <label style="margin-top:8px">Jobs</label>${x.jobs.map(j=>`<div class="mj"><input type="text" value="${esc(j.name)}" data-jn="${i}|${j.id}"><button class="small ghost" data-del="${i}|${j.id}">Remove</button></div>`).join('')}
+  <button class="small" data-add="${i}">+ Add job</button></div>`).join(''):'';
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+document.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t||!S)return;const D=t.dataset;
+ if(D.u!==undefined){S.cur=+D.u;save()}
+ else if(D.d){sel=D.d}
+ else if(D.in){setE(D.in,'s',nowT());return}
+ else if(D.out){setE(D.out,'e',nowT());return}
+ else if(D.tin){tin[D.tin]=tin[D.tin]?null:{mode:'since',from:'',to:''}}
+ else if(D.tm){const[j,m]=D.tm.split('|');const t=tin[j];t.mode=m;if(m=='custom'&&!t.from){const pk=pendDates(j);t.from=pk[0]||sel;t.to=pk[pk.length-1]||sel}}
+ else if(D.tgo){const t=tin[D.tgo];if(t.mode=='custom')turnIn(D.tgo,t.from,t.to);else turnIn(D.tgo);tin[D.tgo]=null}
+ else if(D.tx){tin[D.tx]=null}
+ else if(D.exp){exportPeriod(D.exp);return}
+ else if(D.note){const k=D.note+sel;open[k]=!open[k]}
+ else if(D.clr){delete S.entries[key(D.clr,sel)];save()}
+ else if(D.add!==undefined){S.users[D.add].jobs.push({id:uid(),name:'New job'});save()}
+ else if(D.del){const[i,j]=D.del.split('|');if(t.dataset.arm){S.users[i].jobs=S.users[i].jobs.filter(x=>x.id!=j);save()}else{t.dataset.arm=1;t.textContent='Tap again to remove';t.classList.add('warn');return}}
+ else if(t.id=='prev'||t.id=='next'){wk.setDate(wk.getDate()+(t.id=='prev'?-7:7));const d=new Date(sel+'T12:00:00');d.setDate(d.getDate()+(t.id=='prev'?-7:7));sel=iso(d)}
+ else if(t.id=='today'){wk=monday(now);sel=iso(now)}
+ else if(t.id=='manage'){showMgr=!showMgr}
+ else if(t.id=='csv'){exportCsv();return}
+ else if(t.id=='bk'){saveFile('timeclock-backup.json',JSON.stringify(S),'application/json');return}
+ render()});
+document.addEventListener('input',ev=>{const t=ev.target;if(t.dataset.nj){const k=key(t.dataset.nj,sel);const e=S.entries[k]||{};e.n=t.value;if(!e.s&&!e.e&&!e.n)delete S.entries[k];else S.entries[k]=e;save()}});
+document.addEventListener('change',ev=>{const t=ev.target,D=t.dataset;
+ if(D.f){setE(D.j,D.f,t.value)}
+ else if(D.tf){const[j,f]=D.tf.split('|');tin[j][f]=t.value;render()}
+ else if(D.ps){sumSel[D.ps]=t.value;render()}
+ else if(D.un!==undefined){S.users[D.un].name=t.value||'Person';save();render()}
+ else if(D.jn){const[i,j]=D.jn.split('|');S.users[i].jobs.find(x=>x.id==j).name=t.value||'Job';save();render()}});
+async function saveFile(name,text,type){try{const dl=window.claude&&await window.claude.use('downloads');if(dl){await dl.save({filename:name,data:new Blob([text],{type:type||'text/csv'})});return}}catch(e){if(e&&e.code==='declined')return}
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:type||'text/csv'}));a.download=name;document.body.appendChild(a);a.click();a.remove()}
+function exportCsv(){
+ const out=['Person,Job,Date,Start,End,Hours,Notes'];
+ S.users.forEach((u,i)=>u.jobs.forEach(j=>Object.keys(S.entries).filter(k=>k.startsWith(i+'|'+j.id+'|')).sort((a,b)=>a.split('|')[2]<b.split('|')[2]?-1:1).forEach(k=>{const e=S.entries[k];out.push([u.name,j.name,k.split('|')[2],e.s||'',e.e||'',hrs(e).toFixed(2),e.n||''].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','))})));
+ saveFile('all-entries.csv',out.join('\n'))
+}
+async function tryLogin(p){PASS=p;try{await boot();try{localStorage.setItem('tc.pass',p)}catch(e){}}catch(e){$s('lerr').textContent=e.auth?'Wrong passcode.':'Could not reach the server.';$s('login').hidden=false}}
+$s('go').onclick=()=>tryLogin($s('pw').value);
+$s('pw').onkeydown=e=>{if(e.key=='Enter')tryLogin(e.target.value)};
+$s('out').onclick=()=>{try{localStorage.removeItem('tc.pass')}catch(e){}location.reload()};
+$s('impf').onchange=e=>{const f=e.target.files[0];if(f)f.text().then(t=>{$s('imp').value=t})};
+$s('impgo').onclick=()=>{const m=$s('impmsg');try{const o=JSON.parse($s('imp').value),i=+$s('impu').value,su=o.users[i];if(!su)throw 0;const E={};let n=0;Object.keys(o.entries||{}).forEach(k=>{if(k.startsWith(i+'|')){E['0|'+k.slice(k.indexOf('|')+1)]=o.entries[k];n++}});S.users[0].jobs=su.jobs;S.entries=E;S.periods=(o.periods||[]).filter(x=>x.u==i).map(x=>({...x,u:0}));save();render();m.textContent='Imported '+n+' entries.'}catch(e){m.textContent='That does not look like a valid backup.'}};
+document.addEventListener('visibilitychange',async()=>{if(!S)return;if(document.hidden){flush(true)}else if(!dirty){try{const r=await api('GET');if(r.state&&!dirty){S=r.state;S.cur=0;render()}}catch(e){}}});
+try{const p=localStorage.getItem('tc.pass');if(p)tryLogin(p)}catch(e){}
+</script></body></html>
